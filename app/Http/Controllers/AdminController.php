@@ -21,6 +21,36 @@ class AdminController extends Controller
         return view('admin.brands', compact('brands'));
     }
 
+    public function edit_brand($id)
+    {
+        $brand = Brand::find($id);
+        return view('admin.edit_brand', compact('brand'));
+    }
+    public function update_brand(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'required|unique:brands,slug',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $brand = Brand::find($request->id);
+        $brand->name = $request->name;
+        $brand->slug = Str::slug($request->name);
+        if ($request->hasFile('image')) {
+            if (File::exists(public_path('uploads/brands/') . '/' . $brand->image)) {
+                File::delete(public_path('uploads/brands/') . '/' . $brand->image);
+            }
+            $image = $request->file('image');
+            $file_extension = $request->file('image')->extension(); //extension: jpg, png, jpeg, gif, svg
+            $file_name = Carbon::now()->timestamp . '.' . $file_extension;
+            $brand->image = $file_name;
+            $this->GenerateBrandThumbailsImage($image, $file_name);
+        }
+
+        $brand->save();
+        return redirect()->route('admin.brands')->with('success', 'Brand has been updated successfully');
+    }
     public function add_brand()
     {
         return view('admin.add_brand');
