@@ -89,4 +89,14 @@ class AdminController extends Controller
             ->cover(124, 124)
             ->save($destinationPath . '/' . $imageName);
     }
+
+    public function delete_brand($id)
+    {
+        $brand = Brand::find($id);
+        if (File::exists(public_path('uploads/brands/') . '/' . $brand->image)) {
+            File::delete(public_path('uploads/brands/') . '/' . $brand->image);
+        }
+        $brand->delete();
+        return redirect()->route('admin.brands')->with('status', 'Brand has been deleted succesfully');
+    }
 }
